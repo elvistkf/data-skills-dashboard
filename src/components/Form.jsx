@@ -98,9 +98,7 @@ export default class Form extends Component {
         const countryOptions = this.props.countryOptions.map(item => {
             return { label: item, value: item };
         })
-
-        // console.log(this.state)
-
+        
         return (
             <FormContainer onSubmit={this.handleSubmit}>
                 <FilterToggle className='button noselect' onClick={() => this.setState({ showFilter: !this.state.showFilter })}>
@@ -134,7 +132,7 @@ export default class Form extends Component {
                         <FormTitle>
                             Show Top <span className="underline">&nbsp;{this.state.topN}&nbsp;</span> Items:
                         </FormTitle>
-                        <input name="topN" type="range" min="3" max="10" defaultValue={6} className="rangeSlider" onChange={this.handleSliderChange} />
+                        <input name="topN" type="range" min="3" max="10" defaultValue={7} className="rangeSlider" onChange={this.handleSliderChange} />
                     </FormField>
 
                     <FormField>
