@@ -49,7 +49,7 @@ export default class Form extends Component {
             country: null,
             position: null,
             region: [],
-            topN: 7,
+            topN: 6,
             showPercentage: "on",
             showFilter: false
         };
@@ -69,7 +69,7 @@ export default class Form extends Component {
             val = value.map(item => item.label)
         }
         
-        this.setState({ [name]: val })
+        this.setState({ [name]: val }, this.handleChangeFinal)
     }
 
     handleSliderChange(event) {
@@ -77,7 +77,11 @@ export default class Form extends Component {
         const name = target.name;
         const val = target.type === "range" ? target.value : target.checked;
 
-        this.setState({ [name]: val })
+        this.setState({ [name]: val }, this.handleChangeFinal)
+    }
+
+    handleChangeFinal(event) {
+        this.props.onSubmit(this.state)
     }
 
     handleSubmit(event) {
@@ -132,7 +136,7 @@ export default class Form extends Component {
                         <FormTitle>
                             Show Top <span className="underline">&nbsp;{this.state.topN}&nbsp;</span> Items:
                         </FormTitle>
-                        <input name="topN" type="range" min="3" max="10" defaultValue={7} className="rangeSlider" onChange={this.handleSliderChange} />
+                        <input name="topN" type="range" min="3" max="10" defaultValue={6} className="rangeSlider" onChange={this.handleSliderChange} />
                     </FormField>
 
                     <FormField>
@@ -145,9 +149,9 @@ export default class Form extends Component {
                         </ToggleContainer>
                     </FormField>
 
-                    <FormField>
+                    {/* <FormField>
                         <input type="submit" value="Search" className="button" />
-                    </FormField>
+                    </FormField> */}
                 </FieldContainer>
 
             </FormContainer >

@@ -1,28 +1,59 @@
 import React, { Component } from 'react'
 import styled from 'styled-components'
-import Chart from '../components/Chart'
 import Form from '../components/Form'
 import axios from "axios";
-import Spinner from 'react-bootstrap/Spinner'
 import responseData from '../assets/response.json';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import Card from '../components/Card';
+import BarChart from '../components/BarChart';
+import Loading from '../components/Loading';
+
 
 const ControlContainer = styled.div`
-    min-width: 15%;
+    /* min-width: 15%; */
 `
 
 const DashboardContainer = styled.div`
+    /* border: 1px solid red; */
+`
+
+const ChartContainer = styled.div`
     padding: 1em 1em 1em 1em;
+    margin: 0em;
     width: 100%;
     height: 100%;
-    display: flex;
-    justify-content: space-evenly;
+    /* display: flex;
+    justify-content: space-around;
     align-items: center;
     flex-direction: row;
-    flex-wrap: wrap;
-    flex-grow: 2;
+    flex-wrap: wrap; */
+    display: grid;
+    min-width: 0;
+    grid-template-columns: repeat(3, 33%);
+
+    @media screen and (max-width: 1200px) {
+        grid-template-columns: repeat(2, 50%);
+    }
+
+    @media screen and (max-width: 768px) {
+        grid-template-columns: repeat(1, 100%);
+    }
+`
+
+const CardContainer = styled.div`
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+    margin: 0em;
+    margin-top: 0.5em;
+    padding: 1em 1em 1em 1em;
+    @media screen and (max-width: 768px){
+        /* font-size: small; */
+        padding: 0;
+    }
 `
 
 class Dashboard extends Component {
@@ -33,13 +64,15 @@ class Dashboard extends Component {
             country: null,
             position: null,
             region: [],
-            topN: 7,
+            topN: 6,
             showPercentage: true,
             data: {},
         }
         this.region = new Set();
         this.position = new Set();
         this.country = new Set();
+        this.count = 0;
+        this.mostInDemand = "";
 
         this.handleFormSubmit = this.handleFormSubmit.bind(this)
         this.responseData = null
@@ -48,7 +81,7 @@ class Dashboard extends Component {
     componentDidMount() {
         this.fetchData();
         // this.responseData = responseData.documents;
-        this.setState({ status: "fetched" }, this.handleFetch)
+        // this.setState({ status: "fetched" }, this.handleFetch)
     }
 
     async fetchData() {
@@ -68,7 +101,7 @@ class Dashboard extends Component {
         this.setState({ status: "fetched" })
     }
 
-    processRegion = (country, region) => {
+    formatRegion = (country, region) => {
         if (country !== "Canada" || country === null) {
             return region;
         }
@@ -96,13 +129,13 @@ class Dashboard extends Component {
 
         const updatePositionSet = this.position.size === 0;
         const updateCountrySet = this.country.size === 0;
-        
-        let count = 0;
+
+        this.count = 0;
         if (!this.responseData) {
             return;
         }
         this.responseData.forEach(item => {
-            const processedRegion = this.processRegion(item.country, item.location);
+            const formattedRegion = this.formatRegion(item.country, item.location);
 
             if (updateCountrySet) {
                 this.country.add(item.country);
@@ -112,21 +145,21 @@ class Dashboard extends Component {
             }
 
             if (
-                (item.country !== this.state.country && this.state.country !== null) || 
-                (item.category !== this.state.position && this.state.position !== null) 
+                (item.country !== this.state.country && this.state.country !== null) ||
+                (item.category !== this.state.position && this.state.position !== null)
             ) {
                 return;
             }
-            
-            if (processedRegion !== null) {
-                this.region.add(processedRegion);
+
+            if (formattedRegion !== null) {
+                this.region.add(formattedRegion);
             }
 
-            if ((!this.state.region.includes(processedRegion)) && this.state.region.length !== 0) {
+            if ((!this.state.region.includes(formattedRegion)) && this.state.region.length !== 0) {
                 return;
             }
 
-            count++;
+            this.count++;
             for (let cat in skill_set) {
                 if (!(cat in item)) {
                     continue;
@@ -149,13 +182,27 @@ class Dashboard extends Component {
             tmpArray = tmpArray.slice(0, this.state.topN);
             // eslint-disable-next-line
             tmpArray.forEach(item => {
-                tmpObject[item[0]] = item[1] * (this.state.showPercentage ? 100 / count : 1);
+                tmpObject[item[0]] = item[1] * (this.state.showPercentage ? 100 / this.count : 1);
             })
             skill_set[cat] = tmpObject;
         }
 
+        let tmpArray = [];
+        for (let cat in skill_set) {
+            if (cat === "degree" || cat === "major") {
+                continue
+            }
+            for (let skill in skill_set[cat]) {
+                tmpArray.push([skill, skill_set[cat][skill]])
+            }
+            tmpArray.sort((a, b) => {
+                return b[1] - a[1];
+            })
+            tmpArray = tmpArray.slice(0, 3);
+        }
+        this.mostInDemand = tmpArray.map(item => item[0]).join(", ")
+
         this.setState({ data: skill_set });
-        console.log(count)
     }
 
     handleFormSubmit = (form) => {
@@ -166,9 +213,9 @@ class Dashboard extends Component {
         return (
             <Container fluid>
                 <Row>
-                    <Col sm="4" xl="2">
+                    <Col lg="3" xl="2">
                         <ControlContainer>
-                            <Form onSubmit={this.handleFormSubmit} regionOptions={Array.from(this.region)} 
+                            <Form onSubmit={this.handleFormSubmit} regionOptions={Array.from(this.region)}
                                 positionOptions={Array.from(this.position)} countryOptions={Array.from(this.country)} />
                         </ControlContainer>
                     </Col>
@@ -176,17 +223,24 @@ class Dashboard extends Component {
                         {
                             this.state.data.degree && this.state.status === "fetched" ? (
                                 <DashboardContainer>
-                                    <Chart data={this.state.data.degree} showPercentage={this.state.showPercentage} indexAxis="y" title="Degree" />
-                                    <Chart data={this.state.data.major} showPercentage={this.state.showPercentage} indexAxis="y" title="Major" />
-                                    <Chart data={this.state.data.programming} showPercentage={this.state.showPercentage} title="Programming Language" />
-                                    <Chart data={this.state.data.BI} showPercentage={this.state.showPercentage} title="BI Software" />
-                                    <Chart data={this.state.data.DB} showPercentage={this.state.showPercentage} title="Database" />
-                                    <Chart data={this.state.data.cloud} showPercentage={this.state.showPercentage} title="Cloud Platform" />
+                                    <CardContainer>
+                                        <Card title={"Number of Jobs"} value={this.count} />
+                                        <Card title={"Most In-Demand Skills"} value={this.mostInDemand} />
+                                        <Card title={"Region with Most Jobs"} />
+                                    </CardContainer>
+                                    <ChartContainer>
+                                        <BarChart data={this.state.data.degree} showPercentage={this.state.showPercentage} indexAxis="y" title="Degree" />
+                                        <BarChart data={this.state.data.major} showPercentage={this.state.showPercentage} indexAxis="y" title="Major" />
+                                        <BarChart data={this.state.data.programming} showPercentage={this.state.showPercentage} title="Programming Language" />
+                                        <BarChart data={this.state.data.BI} showPercentage={this.state.showPercentage} title="BI Software" />
+                                        <BarChart data={this.state.data.DB} showPercentage={this.state.showPercentage} title="Database" />
+                                        <BarChart data={this.state.data.cloud} showPercentage={this.state.showPercentage} title="Cloud Platform" />
+                                        {/* <LineChart></LineChart> */}
+                                    </ChartContainer>
                                 </DashboardContainer>
+
                             ) :
-                                <DashboardContainer>
-                                    <Spinner animation="border" variant="primary" />
-                                </DashboardContainer>
+                                <Loading />
                         }
                     </Col>
                 </Row>
