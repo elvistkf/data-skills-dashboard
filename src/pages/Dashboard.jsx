@@ -52,7 +52,7 @@ const ChartContainer = styled.div`
         grid-template-columns: repeat(2, 50%);
     }
 
-    @media screen and (max-width: 768px) {
+    @media screen and (max-width: 800px) {
         grid-template-columns: repeat(1, 100%);
     }
 `
@@ -65,7 +65,7 @@ const CardContainer = styled.div`
     margin: 0em;
     margin-top: 0.5em;
     padding: 1em 1em 1em 1em;
-    @media screen and (max-width: 768px){
+    @media screen and (max-width: 800px){
         /* font-size: small; */
         padding: 0;
     }
@@ -86,7 +86,7 @@ class Dashboard extends Component {
         this.region = new Set();
         this.position = new Set();
         this.country = new Set();
-        this.count = 0;
+        this.count = {};
         this.mostInDemand = "";
 
         this.handleFormSubmit = this.handleFormSubmit.bind(this)
@@ -145,7 +145,7 @@ class Dashboard extends Component {
         const updatePositionSet = this.position.size === 0;
         const updateCountrySet = this.country.size === 0;
 
-        this.count = 0;
+        this.count = {};
         if (!this.responseData) {
             return;
         }
@@ -174,16 +174,25 @@ class Dashboard extends Component {
                 return;
             }
 
-            this.count++;
+            this.count[item.category] = (this.count[item.category] || 0) + 1;
+
             for (let cat in skill_set) {
                 if (!(cat in item)) {
                     continue;
                 }
                 item[cat].forEach(skill => {
-                    skill_set[cat][skill] = (skill_set[cat][skill] || 0) + 1;
+                    if (!(skill in skill_set[cat])) {
+                        skill_set[cat][skill] = {[item["category"]]: 1};
+                    }
+                    else {
+                        skill_set[cat][skill][item["category"]] = (skill_set[cat][skill][item["category"]] || 0) + 1;
+                    }
                 })
             }
         });
+        let sumObjValues = function(obj) {
+            return Object.values(obj).reduce((a, b) => a + b, 0)
+        }
 
         for (let cat in skill_set) {
             let tmpArray = [];
@@ -191,15 +200,20 @@ class Dashboard extends Component {
             for (let skill in skill_set[cat]) {
                 tmpArray.push([skill, skill_set[cat][skill]]);
             }
+            
             tmpArray.sort((a, b) => {
-                return b[1] - a[1];
+                return sumObjValues(b[1]) - sumObjValues(a[1]);
             })
             tmpArray = tmpArray.slice(0, this.state.topN);
             // eslint-disable-next-line
             tmpArray.forEach(item => {
-                tmpObject[item[0]] = item[1] * (this.state.showPercentage ? 100 / this.count : 1);
+                let _tmp1 = {}
+                for (let pos in item[1]) {
+                    _tmp1[pos] = item[1][pos] * (this.state.showPercentage ? 100 / this.count[pos] : 1);
+                }
+                tmpObject[item[0]] = _tmp1
             })
-            skill_set[cat] = tmpObject;
+            skill_set[cat] = tmpObject;   
         }
 
         let tmpArray = [];
@@ -211,12 +225,13 @@ class Dashboard extends Component {
                 tmpArray.push([skill, skill_set[cat][skill]])
             }
             tmpArray.sort((a, b) => {
-                return b[1] - a[1];
+                return sumObjValues(b[1]) - sumObjValues(a[1]);
             })
             tmpArray = tmpArray.slice(0, 3);
         }
+        
         this.mostInDemand = tmpArray.map(item => item[0]).join(", ")
-
+        // console.log(skill_set["BI"]["Tableau"])
         this.setState({ data: skill_set });
     }
 
@@ -239,7 +254,7 @@ class Dashboard extends Component {
                             this.state.data.degree && this.state.status === "fetched" ? (
                                 <DashboardContainer>
                                     <CardContainer>
-                                        <Card title={"Number of Jobs"} value={this.count} />
+                                        <Card title={"Number of Jobs"} value={Object.values(this.count).reduce((a,b) => a+b)} />
                                         <Card title={"Most In-Demand Skills"} value={this.mostInDemand} />
                                         <Card title={"Region with Most Jobs"} />
                                     </CardContainer>

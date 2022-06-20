@@ -15,7 +15,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Title)
 // 		ctx.save()
 // 		if (includeList.includes(ctx.fillStyle)) {
 // 			console.log(ctx.fillStyle)	
-		
+
 // 			ctx.shadowColor = "#123a55"
 // 			ctx.shadowBlur = 25;
 // 			ctx.shadowOffsetX = -1;
@@ -99,7 +99,8 @@ function BarChart(props) {
 					title: context => {
 						return context[0].label.split(",").join(" ")
 					},
-					label: context => (context.dataset.label || '') + " " + (context.parsed[scaleAxis]) + (props.showPercentage ? "%" : ""),
+					// label: context => " " + (context.dataset.label || '') + " " + (context.parsed[scaleAxis]) + (props.showPercentage ? "%" : ""),
+					label: context => ` ${context.dataset.label || ""}: ${context.parsed[scaleAxis] + (props.showPercentage ? "%" : "")}`
 					// beforeBody: context => context[0].parsed[scaleAxis] + (props.showPercentage ? "%" : ""),
 					// label: () => null,
 				}
@@ -107,21 +108,37 @@ function BarChart(props) {
 		}
 	};
 
+	let dataset = [];
+
+	const dataset_da = {
+		label: "Data Analyst",
+		barPercentage: indexAxis === "x" ? 0.8 : 0.95,
+		data: Object.values(props.data).map(obj => Math.round(obj["Data Analyst"] * 100) / 100),
+		backgroundColor: Object.values(props.data).map((num, idx) => idx < 3 ? 'rgba(54, 162, 235, 0.5)' : 'rgba(135, 135, 200, 0.5)'),
+		borderColor: Object.values(props.data).map((num, idx) => idx < 3 ? "#36a2eb" : "#ffffff")
+	}
+
+	if (dataset_da.data.reduce((a,b) => a || 0 + b || 0, 0) > 0) {
+		dataset.push(dataset_da)
+	}
+
+	const dataset_ds = {
+		label: "Data Scientist",
+		barPercentage: indexAxis === "x" ? 0.8 : 0.95,
+		data: Object.values(props.data).map(obj => Math.round(obj["Data Scientist"] * 100) / 100),
+		backgroundColor: Object.values(props.data).map((num, idx) => idx < 3 ? 'rgba(200, 35, 35, 0.5)' : 'rgba(200, 135, 135, 0.5)'),
+		borderColor: Object.values(props.data).map((num, idx) => idx < 3 ? "#b17575" : "#ffffff")
+	}
+	if (dataset_ds.data.reduce((a,b) => a || 0 + b || 0, 0) > 0) {
+		dataset.push(dataset_ds)
+	}
+
 	const data = {
 		labels: Object.keys(props.data).map(label => label === "Power BI" ? label : label.split(" ")),
-		datasets: [{
-			barPercentage: indexAxis === "x" ? 0.8 : 0.95,
-			data: Object.values(props.data).map(num => Math.round(num * 100) / 100),
-			backgroundColor: Object.values(props.data).map((num, idx) => idx < 3 ? 'rgba(54, 162, 235, 0.5)' : 'rgba(135, 135, 135, 0.5)'),
-			borderColor: Object.values(props.data).map((num, idx) => idx < 3 ? "#36a2eb" : "#ffffff")
-		},
-		// {
-		// 	data: [20, 30],
-		// 	backgroundColor: "rgba(250, 50, 50, 0.5)"
-		// }
-		],
+		datasets: dataset,
 		borderWidth: 1
 	}
+
 	return (
 		<ReponseiveCol>
 			<Bar options={option} data={data} />
