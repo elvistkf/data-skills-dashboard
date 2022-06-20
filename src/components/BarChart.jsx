@@ -100,25 +100,25 @@ function BarChart(props) {
 						return context[0].label.split(",").join(" ")
 					},
 					label: context => (context.dataset.label || '') + " " + (context.parsed[scaleAxis]) + (props.showPercentage ? "%" : ""),
-					// label: context => null,
+					// beforeBody: context => context[0].parsed[scaleAxis] + (props.showPercentage ? "%" : ""),
+					// label: () => null,
 				}
 			},
 		}
 	};
 
 	const data = {
-		labels: Object.keys(props.data).map(label => {
-			return label === "Power BI" ? label : label.split(" ")
-			// let labelSplit = label.split(" ")
-			// return labelSplit
-			// return props.title === "Major" ? labelSplit : label
-		}),
+		labels: Object.keys(props.data).map(label => label === "Power BI" ? label : label.split(" ")),
 		datasets: [{
 			barPercentage: indexAxis === "x" ? 0.8 : 0.95,
 			data: Object.values(props.data).map(num => Math.round(num * 100) / 100),
 			backgroundColor: Object.values(props.data).map((num, idx) => idx < 3 ? 'rgba(54, 162, 235, 0.5)' : 'rgba(135, 135, 135, 0.5)'),
 			borderColor: Object.values(props.data).map((num, idx) => idx < 3 ? "#36a2eb" : "#ffffff")
-		}
+		},
+		// {
+		// 	data: [20, 30],
+		// 	backgroundColor: "rgba(250, 50, 50, 0.5)"
+		// }
 		],
 		borderWidth: 1
 	}

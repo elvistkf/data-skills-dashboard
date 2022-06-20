@@ -3,13 +3,28 @@ import styled from 'styled-components'
 import Form from '../components/Form'
 import axios from "axios";
 import responseData from '../assets/response.json';
-import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
+// import Container from 'react-bootstrap/Container';
+// import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Card from '../components/Card';
 import BarChart from '../components/BarChart';
 import Loading from '../components/Loading';
 
+const BackgroundContainer = styled.div`
+    margin: 0em 1em;
+    display: grid;
+    grid-template-columns: 15% 85%;
+
+    @media screen and (max-width: 1200px) {
+        display: grid;
+        margin: 0em 0.5em;
+        grid-template-columns: 20% 80%;
+    }
+
+    @media screen and (max-width: 800px){
+        display: block;
+    }
+`
 
 const ControlContainer = styled.div`
     /* min-width: 15%; */
@@ -79,9 +94,9 @@ class Dashboard extends Component {
     }
 
     componentDidMount() {
-        this.fetchData();
-        // this.responseData = responseData.documents;
-        // this.setState({ status: "fetched" }, this.handleFetch)
+        // this.fetchData();
+        this.responseData = responseData.documents;
+        this.setState({ status: "fetched" }, this.handleFetch)
     }
 
     async fetchData() {
@@ -211,14 +226,14 @@ class Dashboard extends Component {
 
     render() {
         return (
-            <Container fluid>
-                <Row>
-                    <Col lg="3" xl="2">
+            <BackgroundContainer>
+                {/* <Row> */}
+                    {/* <Col lg="3" xl="2"> */}
                         <ControlContainer>
                             <Form onSubmit={this.handleFormSubmit} regionOptions={Array.from(this.region)}
                                 positionOptions={Array.from(this.position)} countryOptions={Array.from(this.country)} />
                         </ControlContainer>
-                    </Col>
+                    {/* </Col> */}
                     <Col>
                         {
                             this.state.data.degree && this.state.status === "fetched" ? (
@@ -243,8 +258,8 @@ class Dashboard extends Component {
                                 <Loading />
                         }
                     </Col>
-                </Row>
-            </Container >
+                {/* </Row> */}
+            </BackgroundContainer >
         )
     }
 }

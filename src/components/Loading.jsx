@@ -7,12 +7,14 @@ const Container = styled.div`
     height: 50vh;
     justify-content: center;
     align-items: center;
+    flex-direction: column;
 `
 
 function Loading() {
     return (
         <Container>
             <Spinner animation="border" variant="primary" />
+            <div>Fetching Data</div>
         </Container>
     )
 }

@@ -12,7 +12,7 @@ const FilterToggle = styled.div`
     margin-top: 1em;
     display: block;
 
-    @media screen and (min-width: 768px){
+    @media screen and (min-width: 800px){
         display: none;
     }
 
@@ -26,7 +26,7 @@ const FieldContainer = styled.div`
     margin-top: 1em;
     display: ${(props) => props.showFilter ? "block" : "none"};
 
-    @media screen and (min-width: 768px){
+    @media screen and (min-width: 800px){
         display: block;
     }
 `
