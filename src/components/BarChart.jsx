@@ -4,28 +4,6 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip, Titl
 import { Bar } from 'react-chartjs-2';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Title)
 
-// let draw = BarController.prototype.draw;
-// BarController.prototype.draw = function () {
-// 	draw.apply(this, arguments);
-// 	let ctx = this._ctx;
-// 	let _fill = ctx.fill;
-// 	ctx.fill = function () {
-// 		const includeList = ["#36a2eb"]
-// 		// let ignoreList = [];
-// 		ctx.save()
-// 		if (includeList.includes(ctx.fillStyle)) {
-// 			console.log(ctx.fillStyle)	
-
-// 			ctx.shadowColor = "#123a55"
-// 			ctx.shadowBlur = 25;
-// 			ctx.shadowOffsetX = -1;
-// 			ctx.shadowOffsetY = -1;
-// 		}
-// 		_fill.apply(this, arguments)
-// 		ctx.restore();
-// 	}
-// }
-
 const ReponseiveCol = styled.div`
 	background-color: #fbfbfb;
 	border-radius: 1em;
@@ -37,7 +15,7 @@ const ReponseiveCol = styled.div`
 
 	@media screen and (max-width: 1440px){
 		flex-basis: 31.9%;
-		height: 37.5vh;
+		height: 35vh;
 	}
 
   	@media screen and (max-width: 1366px){
@@ -64,7 +42,6 @@ function BarChart(props) {
 		indexAxis: indexAxis,
 		responsive: true,
 		maintainAspectRatio: false,
-		// aspectRatio: 2,
 		elements: {
 			bar: {
 				borderWidth: 2,

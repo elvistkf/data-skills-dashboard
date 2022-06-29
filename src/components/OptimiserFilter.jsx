@@ -3,13 +3,16 @@ import Select from 'react-select'
 import styled from 'styled-components';
 import { FaFilter } from 'react-icons/fa';
 import './form.css';
+import "../common.css";
+import { mapping } from '../assets/config';
 
 const FormContainer = styled.form`
     
 `
 
 const FilterToggle = styled.div`
-    margin-top: 1em;
+    margin: 1em 1.5em 0em 1.5em;
+    width: auto;
     display: block;
 
     @media screen and (min-width: 800px){
@@ -23,11 +26,12 @@ const FormTitle = styled.div`
 `
 
 const FieldContainer = styled.div`
-    margin-top: 1em;
+    margin: 1em 1.5em 0em 1.5em;
     display: ${(props) => props.showFilter ? "block" : "none"};
 
     @media screen and (min-width: 800px){
         display: block;
+        margin: 1em 0 0 0;
     }
 `
 
@@ -42,33 +46,34 @@ const ToggleContainer = styled.div`
     align-items: center;
 `
 
-export default class Form extends Component {
+export default class OptimiserFilter extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            country: null,
-            position: null,
-            region: [],
-            topN: 6,
-            showPercentage: "on",
-            showFilter: false
+            showFilter: false,
+            targetPosition: null,
+            ...props.currentSkills
         };
 
         this.handleSelectChange = this.handleSelectChange.bind(this);
         this.handleSliderChange = this.handleSliderChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleChangeFinal = this.handleChangeFinal.bind(this);
+    }
+
+    componentDidMount() {
     }
 
     handleSelectChange(value, action) {
         const name = action.name;
         let val = null;
-        if (name !== "region") {
+        if (name === "targetPosition") {
             val = value === null ? null : value.label;
         }
         else {
             val = value.map(item => item.label)
         }
-        
+
         this.setState({ [name]: val }, this.handleChangeFinal)
     }
 
@@ -81,7 +86,15 @@ export default class Form extends Component {
     }
 
     handleChangeFinal(event) {
-        this.props.onSubmit(this.state)
+        this.props.onSubmit({
+            targetPosition: this.state.targetPosition,
+            currentSkills: {
+                programming: this.state.programming,
+                BI: this.state.BI,
+                DB: this.state.DB,
+                cloud: this.state.cloud
+            }
+        })
     }
 
     handleSubmit(event) {
@@ -91,21 +104,15 @@ export default class Form extends Component {
     }
 
     render() {
-        const regionOptions = this.props.regionOptions.map(item => {
-            return { label: item, value: item };
+        const positionOptions = this.props.positionOptions.map((item) => {
+            return { label: item, value: item }
         })
 
-        const positionOptions = this.props.positionOptions.map(item => {
-            return { label: item, value: item };
-        })
+        // const countryOptions = {}
 
-        const countryOptions = this.props.countryOptions.map(item => {
-            return { label: item, value: item };
-        })
-        
         return (
             <FormContainer onSubmit={this.handleSubmit}>
-                <FilterToggle className='button noselect' onClick={() => this.setState({ showFilter: !this.state.showFilter })}>
+                <FilterToggle className='button noselect' onClick={() => this.setState(prevState => ({ showFilter: !prevState.showFilter }))}>
                     <FaFilter /><span>&nbsp;&nbsp;</span>
                     Filter
                 </FilterToggle>
@@ -113,33 +120,36 @@ export default class Form extends Component {
                 <FieldContainer showFilter={this.state.showFilter}>
                     <FormField>
                         <FormTitle>
-                            Country:
+                            Target Position:
                         </FormTitle>
-                        <Select name="country" options={countryOptions} isClearable={true} isSearchable={false} onChange={this.handleSelectChange} />
+                        <Select name="targetPosition" options={positionOptions} isClearable={true} isSearchable={false} onChange={this.handleSelectChange} />
                     </FormField>
 
-                    <FormField>
-                        <FormTitle>
-                            Region:
-                        </FormTitle>
-                        <Select name="region" options={regionOptions} isSearchable={false} onChange={this.handleSelectChange} isMulti={true} />
-                    </FormField>
+                    <hr/>
+                    {
+                        Object.keys(this.props.skillSet).map((cat, index) => {
+                            const skillOptions = Array.from(this.props.skillSet[cat]).map((item) => {
+                                return { label: item, value: item }
+                            })
+                            return (
+                                <FormField key={index}>
+                                    <FormTitle>
+                                        {mapping[cat]}
+                                    </FormTitle>
+                                    <Select name={cat} options={skillOptions} isSearchable={false} value={this.state[cat].map((item) => { return { label: item, value: item } })} onChange={this.handleSelectChange} isMulti={true} />
+                                </FormField>
+                            )
+                        })
+                    }
 
-                    <FormField>
-                        <FormTitle>
-                            Position:
-                        </FormTitle>
-                        <Select name="position" options={positionOptions} isClearable={true} isSearchable={false} onChange={this.handleSelectChange} />
-                    </FormField>
-
-                    <FormField>
+                    {/* <FormField>
                         <FormTitle>
                             Show Top <span className="underline">&nbsp;{this.state.topN}&nbsp;</span> Items:
                         </FormTitle>
                         <input name="topN" type="range" min="3" max="10" defaultValue={6} className="rangeSlider" onChange={this.handleSliderChange} />
-                    </FormField>
+                    </FormField> */}
 
-                    <FormField>
+                    {/* <FormField>
                         <ToggleContainer>
                             <div>Show Percentage:</div>
                             <label className="switch">
@@ -147,7 +157,7 @@ export default class Form extends Component {
                                 <span className="toggleSlider round" />
                             </label>
                         </ToggleContainer>
-                    </FormField>
+                    </FormField> */}
 
                     {/* <FormField>
                         <input type="submit" value="Search" className="button" />

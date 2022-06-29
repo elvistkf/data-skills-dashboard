@@ -1,14 +1,12 @@
 import React, { Component } from 'react'
 import styled from 'styled-components'
-import Form from '../components/Form'
+import DashboardFilter from '../components/DashboardFilter'
 import axios from "axios";
 import responseData from '../assets/response.json';
-// import Container from 'react-bootstrap/Container';
-// import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Card from '../components/Card';
 import BarChart from '../components/BarChart';
-import Loading from '../components/Loading';
+import { mapping } from '../assets/config';
 
 const BackgroundContainer = styled.div`
     margin: 0em 1em;
@@ -39,11 +37,6 @@ const ChartContainer = styled.div`
     margin: 0em;
     width: 100%;
     height: 100%;
-    /* display: flex;
-    justify-content: space-around;
-    align-items: center;
-    flex-direction: row;
-    flex-wrap: wrap; */
     display: grid;
     min-width: 0;
     grid-template-columns: repeat(3, 33%);
@@ -58,16 +51,12 @@ const ChartContainer = styled.div`
 `
 
 const CardContainer = styled.div`
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
+    display: grid;
+    grid-template-columns: repeat(3, 33%);
     width: 100%;
-    margin: 0em;
-    margin-top: 0.5em;
-    padding: 1em 1em 1em 1em;
+    padding: 1em 1em 0em 1em;
     @media screen and (max-width: 800px){
-        /* font-size: small; */
-        padding: 0;
+        grid-template-columns: repeat(1, 100%);
     }
 `
 
@@ -90,13 +79,13 @@ class Dashboard extends Component {
         this.mostInDemand = "";
 
         this.handleFormSubmit = this.handleFormSubmit.bind(this)
-        this.responseData = null
+        this.responseData = props.data
     }
 
     componentDidMount() {
-        // this.fetchData();
-        this.responseData = responseData.documents;
-        this.setState({ status: "fetched" }, this.handleFetch)
+        if (this.responseData) {
+            this.setState({ status: "processing" }, this.handleFetch)
+        }
     }
 
     async fetchData() {
@@ -113,7 +102,7 @@ class Dashboard extends Component {
 
     handleFetch = () => {
         this.processData()
-        this.setState({ status: "fetched" })
+        this.setState({ status: "processed" })
     }
 
     formatRegion = (country, region) => {
@@ -131,7 +120,7 @@ class Dashboard extends Component {
     }
 
     processData = () => {
-        let skill_set = {
+        let skillCount = {
             degree: {},
             major: {},
             programming: {},
@@ -176,31 +165,33 @@ class Dashboard extends Component {
 
             this.count[item.category] = (this.count[item.category] || 0) + 1;
 
-            for (let cat in skill_set) {
+            for (let cat in skillCount) {
                 if (!(cat in item)) {
                     continue;
                 }
                 item[cat].forEach(skill => {
-                    if (!(skill in skill_set[cat])) {
-                        skill_set[cat][skill] = {[item["category"]]: 1};
+                    if (!(skill in skillCount[cat])) {
+                        skillCount[cat][skill] = { [item["category"]]: 1 };
                     }
                     else {
-                        skill_set[cat][skill][item["category"]] = (skill_set[cat][skill][item["category"]] || 0) + 1;
+                        skillCount[cat][skill][item["category"]] = (skillCount[cat][skill][item["category"]] || 0) + 1;
                     }
                 })
             }
         });
-        let sumObjValues = function(obj) {
+
+        let sumObjValues = function (obj) {
             return Object.values(obj).reduce((a, b) => a + b, 0)
         }
 
-        for (let cat in skill_set) {
+        // sort the skill_set object
+        for (let cat in skillCount) {
             let tmpArray = [];
             let tmpObject = {};
-            for (let skill in skill_set[cat]) {
-                tmpArray.push([skill, skill_set[cat][skill]]);
+            for (let skill in skillCount[cat]) {
+                tmpArray.push([skill, skillCount[cat][skill]]);
             }
-            
+
             tmpArray.sort((a, b) => {
                 return sumObjValues(b[1]) - sumObjValues(a[1]);
             })
@@ -213,26 +204,25 @@ class Dashboard extends Component {
                 }
                 tmpObject[item[0]] = _tmp1
             })
-            skill_set[cat] = tmpObject;   
+            skillCount[cat] = tmpObject;
         }
 
         let tmpArray = [];
-        for (let cat in skill_set) {
+        for (let cat in skillCount) {
             if (cat === "degree" || cat === "major") {
                 continue
             }
-            for (let skill in skill_set[cat]) {
-                tmpArray.push([skill, skill_set[cat][skill]])
+            for (let skill in skillCount[cat]) {
+                tmpArray.push([skill, skillCount[cat][skill]])
             }
             tmpArray.sort((a, b) => {
                 return sumObjValues(b[1]) - sumObjValues(a[1]);
             })
             tmpArray = tmpArray.slice(0, 3);
         }
-        
+
         this.mostInDemand = tmpArray.map(item => item[0]).join(", ")
-        // console.log(skill_set["BI"]["Tableau"])
-        this.setState({ data: skill_set });
+        this.setState({ data: skillCount });
     }
 
     handleFormSubmit = (form) => {
@@ -242,37 +232,31 @@ class Dashboard extends Component {
     render() {
         return (
             <BackgroundContainer>
-                {/* <Row> */}
-                    {/* <Col lg="3" xl="2"> */}
-                        <ControlContainer>
-                            <Form onSubmit={this.handleFormSubmit} regionOptions={Array.from(this.region)}
-                                positionOptions={Array.from(this.position)} countryOptions={Array.from(this.country)} />
-                        </ControlContainer>
-                    {/* </Col> */}
-                    <Col>
-                        {
-                            this.state.data.degree && this.state.status === "fetched" ? (
-                                <DashboardContainer>
-                                    <CardContainer>
-                                        <Card title={"Number of Jobs"} value={Object.values(this.count).reduce((a,b) => a+b)} />
-                                        <Card title={"Most In-Demand Skills"} value={this.mostInDemand} />
-                                        <Card title={"Region with Most Jobs"} />
-                                    </CardContainer>
-                                    <ChartContainer>
-                                        <BarChart data={this.state.data.degree} showPercentage={this.state.showPercentage} indexAxis="y" title="Degree" />
-                                        <BarChart data={this.state.data.major} showPercentage={this.state.showPercentage} indexAxis="y" title="Major" />
-                                        <BarChart data={this.state.data.programming} showPercentage={this.state.showPercentage} title="Programming Language" />
-                                        <BarChart data={this.state.data.BI} showPercentage={this.state.showPercentage} title="BI Software" />
-                                        <BarChart data={this.state.data.DB} showPercentage={this.state.showPercentage} title="Database" />
-                                        <BarChart data={this.state.data.cloud} showPercentage={this.state.showPercentage} title="Cloud Platform" />
-                                        {/* <LineChart></LineChart> */}
-                                    </ChartContainer>
-                                </DashboardContainer>
-
-                            ) :
-                                <Loading />
-                        }
-                    </Col>
+                <ControlContainer>
+                    <DashboardFilter onSubmit={this.handleFormSubmit} regionOptions={Array.from(this.region)}
+                        positionOptions={Array.from(this.position)} countryOptions={Array.from(this.country)} />
+                </ControlContainer>
+                <Col>
+                    {
+                        this.state.status === "processed" && (
+                            <DashboardContainer>
+                                <CardContainer>
+                                    <Card title={"Number of Jobs"} value={Object.values(this.count).reduce((a, b) => a + b)} />
+                                    <Card title={"Most In-Demand Skills"} value={this.mostInDemand} />
+                                    <Card title={"Region with Most Jobs"} />
+                                </CardContainer>
+                                <ChartContainer>
+                                    {
+                                        Object.keys(this.state.data).map((cat, index) => {
+                                            const indexAxis = (cat === "degree" || cat === "major") ? "y" : "x";
+                                            return <BarChart data={this.state.data[cat]} showPercentage={this.state.showPercentage} title={mapping[cat]} indexAxis={indexAxis} key={index}/>
+                                        })
+                                    }
+                                </ChartContainer>
+                            </DashboardContainer>
+                        )
+                    }
+                </Col>
                 {/* </Row> */}
             </BackgroundContainer >
         )
