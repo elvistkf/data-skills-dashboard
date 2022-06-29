@@ -53,8 +53,7 @@ export default class Optimiser extends Component {
 			"cloud": new Set()
 		};
 		this.jobCount = 0;
-
-		this.handleFormSubmit = this.handleFormSubmit.bind(this)
+		this.handleFormSubmit = this.handleFormSubmit.bind(this);
 	}
 
 	componentDidMount() {
@@ -106,8 +105,7 @@ export default class Optimiser extends Component {
 				}
 				item[cat].forEach(skill => {
 					skillCount[cat][skill] = (skillCount[cat][skill] || 0) + 1;
-					// skillSet.add(skill)
-					skillSet[cat].add(skill)
+					skillSet[cat].add(skill);
 				})
 			}
 		})
@@ -133,7 +131,7 @@ export default class Optimiser extends Component {
 					result++;
 				}
 				else {
-					result.push(doc)
+					result.push(doc);
 				}
 			}
 		})
