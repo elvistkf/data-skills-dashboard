@@ -19,9 +19,9 @@ function App() {
     useEffect(() => {
         async function fetchData() {
             try {
-                // let response = await axios.get("https://data.mongodb-api.com/app/data-skills-api-ihkuj/endpoint/api/skills");
-                // response = response.data;
-                const response = responseData;
+                let response = await axios.get("https://data.mongodb-api.com/app/data-skills-api-ihkuj/endpoint/api/skills");
+                response = response.data;
+                // const response = responseData;
                 setData(response);
             } catch (e) {
                 console.error(e);

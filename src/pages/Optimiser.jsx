@@ -173,6 +173,10 @@ export default class Optimiser extends Component {
 							This optimiser is designed to optimise your learning path towards being a Data Analyst or Data Scientist.
 							Find out what skills to learn next.
 						</p>
+						<hr/>
+						<p>
+							Note that this is still in development. The algorithms and UI are not finalized yet and may result in unexpected problems.
+						</p>
 					</Alert>}
 					<CardContainer>
 						{
